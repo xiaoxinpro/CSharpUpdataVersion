@@ -50,4 +50,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>start $(ProjectDir)\bin\Debug\CSharpUpdataVersion.exe $(ProjectDir)\Properties\AssemblyInfo.cs</PreBuildEvent>
+  </PropertyGroup>
 </Project>
