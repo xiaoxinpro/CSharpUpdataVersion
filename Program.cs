@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace CSharpUpdataVersion
 {
@@ -51,7 +53,52 @@ namespace CSharpUpdataVersion
                 }
                 File.WriteAllLines(path, lines);
             }
+            else if (Path.GetExtension(path) == ".c" || Path.GetExtension(path) == ".h")
+            {
+                Encoding encoding = EncodingType.GetType(path);
+                string code_data = File.ReadAllText(path, encoding);
+                Regex regex_major = new Regex(@"(?<=\#define\s+((FW)|(APP))_VERSION_MAJOR\s+)\d+");
+                Regex regex_minor = new Regex(@"(?<=\#define\s+((FW)|(APP))_VERSION_MINOR\s+)\d+");
+                Regex regex_patch = new Regex(@"(?<=\#define\s+((FW)|(APP))_VERSION_PATCH\s+)\d+");
+                Match match_major = regex_major.Match(code_data);
+                Match match_minor = regex_minor.Match(code_data);
+                Match match_patch = regex_patch.Match(code_data);
+                if (match_major.Success && match_minor.Success && match_patch.Success)
+                {
+                    int[] version = { Convert.ToInt32(match_major.Value), Convert.ToInt32(match_minor.Value), Convert.ToInt32(match_patch.Value) };
+                    UpdataVersion(ref version);
+                    code_data = regex_major.Replace(code_data, version[0].ToString());
+                    code_data = regex_minor.Replace(code_data, version[1].ToString());
+                    code_data = regex_patch.Replace(code_data, version[2].ToString());
+                    File.WriteAllText(path, code_data, encoding);
+                }
+                else
+                {
+                    Console.WriteLine("Error: 没有找到 FW_VERSION_ 的宏定义。");
+                }
+            }
             Console.WriteLine("完成");
+        }
+
+        static void UpdataVersion(ref int[] version)
+        {
+            int i = version.Length - 1;
+            if (i > 0)
+            {
+                while (++version[i] > 255)
+                {
+                    if (i > 0)
+                    {
+                        version[i] = 0;
+                        i--;
+                    }
+                    else
+                    {
+                        version[i] = 255;
+                        break;
+                    }
+                }
+            }
         }
 
         static void UpdataVersion(ref string line)
