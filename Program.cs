@@ -34,20 +34,23 @@ namespace CSharpUpdataVersion
                 Console.WriteLine("Error: 文件不存在。");
                 return;
             }
-            var lines = File.ReadAllLines(path);
-            for (int i = lines.Length - 1; i >= 0; i--)
+            if (Path.GetExtension(path) == ".cs")
             {
-                if (lines[i].Contains("assembly: AssemblyFileVersion"))
+                var lines = File.ReadAllLines(path);
+                for (int i = lines.Length - 1; i >= 0; i--)
                 {
-                    UpdataVersion(ref lines[i]);
+                    if (lines[i].Contains("assembly: AssemblyFileVersion"))
+                    {
+                        UpdataVersion(ref lines[i]);
+                    }
+                    if (lines[i].Contains("assembly: AssemblyVersion") && !lines[i].Contains("*"))
+                    {
+                        UpdataVersion(ref lines[i]);
+                        break;
+                    }
                 }
-                if (lines[i].Contains("assembly: AssemblyVersion") && !lines[i].Contains("*"))
-                {
-                    UpdataVersion(ref lines[i]);
-                    break;
-                }
+                File.WriteAllLines(path, lines);
             }
-            File.WriteAllLines(path, lines);
             Console.WriteLine("完成");
         }
 
